@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="flex-1 flex flex-col py-6" id="kanban-content">
+    <div class="flex-1 flex flex-col py-6" id="kanban-content" style="height: inherit;">
         <kanban-board></kanban-board>
     </div>
 </x-app-layout>

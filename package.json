@@ -16,12 +16,17 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
+        "@ckeditor/ckeditor5-build-classic": "16.0.0",
+        "@ckeditor/ckeditor5-vue": "^5.1.0",
         "@headlessui/vue": "^1.7.16",
         "@heroicons/vue": "^2.0.18",
         "@vitejs/plugin-vue": "^4.4.0",
         "js-sha256": "^0.10.1",
+        "lodash.clonedeep": "^4.5.0",
         "pinia": "^2.1.7",
         "vue": "^3.2.36",
-        "vue-loader": "^17.3.0"
+        "vue-loader": "^17.3.0",
+        "vuedraggable": "^4.1.0",
+        "@vuepic/vue-datepicker": "^7.2.0"
     }
 }

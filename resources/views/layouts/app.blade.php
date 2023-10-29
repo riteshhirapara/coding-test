@@ -30,7 +30,7 @@
             @endif
 
             <!-- Page Content -->
-            <main class="flex-1 flex flex-col" id="app">
+            <main class="flex-1 flex flex-col" id="app" style="height:calc(100vh - 330px)">
                 {{ $slot }}
             </main>
         </div>

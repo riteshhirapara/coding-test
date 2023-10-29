@@ -10,8 +10,10 @@ class Task extends Model
 
     protected $fillable = [
         'name',
+        'description',
         'phase_id',
         'user_id',
+        'completed_at'
     ];
 
     use HasFactory;

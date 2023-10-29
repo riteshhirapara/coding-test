@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\TasksReorderUpdateRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Models\Phase;
 use App\Models\Task;
 
 class TaskController extends Controller
@@ -19,7 +21,9 @@ class TaskController extends Controller
      */
     public function index()
     {
-        return \App\Models\Phase::with('tasks.user')->get();
+        return \App\Models\Phase::with('tasks.user')
+        ->withCount('tasks')
+        ->get();;
     }
 
     /**
@@ -68,7 +72,13 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        if($request->phase_id){
+            if($request->phase_id != $task->phase_id || $task->phase_id != 4){
+                $request->merge(['completed_at' => $request->updated_at]);
+            }
+        }
+        // Update the task with the new data
+        $task->update($request->all());
     }
 
     /**
@@ -77,5 +87,54 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         Task::destroy($task->id);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function boardsDestroy(Task $task)
+    {
+        Phase::destroy($task->id);
+    }
+
+    public function reorder(TasksReorderUpdateRequest $request)
+    {
+
+        $data = collect($request->phases)
+            // ->recursive() // make all nested arrays a collection
+            ->map(function ($phase) {
+                return collect($phase['tasks'])->map(function ($task) use ($phase) {
+                    return ['id' => $task['id'], 'position' => $task['position'], 'phase_id' => $phase['id']];
+                });
+            })
+            ->flatten(1)
+            ->toArray();
+
+
+        $recordsToInsert = [];
+        $recordsToUpdate = [];
+
+        foreach ($data as $record) {
+            // Check if the record with the same primary key already exists in the database
+            $existingRecord = Task::find($record['id']);
+
+            if ($existingRecord) {
+                // Record exists, so add it to the recordsToUpdate array
+                $recordsToUpdate[] = $record;
+            } else {
+                // Record doesn't exist, so add it to the recordsToInsert array
+                $recordsToInsert[] = $record;
+            }
+        }
+
+        // Insert new records not required now
+        // Task::insert($recordsToInsert);
+
+        // Update existing records
+        foreach ($recordsToUpdate as $record) {
+            Task::where('id', $record['id'])->update($record);
+        }
+        // currently not use Batch upsert but in future
+        //  Task::query()->upsert($data, ['id'], ['position', 'phase_id']);
     }
 }
