@@ -17,12 +17,15 @@ export const useKanbanStore = defineStore('kanban', {
         taskDetails: false,
         dragging: false,
         editTask: false,
+        editDescription: false,
+        selectedLabel: [],
+        labelActive: false,
         creatingTaskProps: {
             name: "",
             due_date: new Date(),
             phase_id: null,
             user_id: null,
-            labels: [],
+            label_id: 0,
         },
         self: null,
     }

@@ -21,9 +21,9 @@ class TaskController extends Controller
      */
     public function index()
     {
-        return \App\Models\Phase::with('tasks.user')
-        ->withCount('tasks')
-        ->get();;
+        return \App\Models\Phase::with(['tasks.user', 'tasks.labels'])
+            ->withCount('tasks')
+            ->get();
     }
 
     /**
@@ -48,7 +48,7 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         // Create a new task from the $request
-        $task = Task::create($request->validated());
+        Task::create($request->validated());
     }
 
     /**
@@ -72,10 +72,8 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        if($request->phase_id){
-            if($request->phase_id != $task->phase_id || $task->phase_id != 4){
-                $request->merge(['completed_at' => $request->updated_at]);
-            }
+        if ($request->phase_id  && $request->phase_id != $task->phase_id || $task->phase_id != 4) {
+            $request->merge(['completed_at' => $request->updated_at]);
         }
         // Update the task with the new data
         $task->update($request->all());
@@ -111,7 +109,6 @@ class TaskController extends Controller
             ->toArray();
 
 
-        $recordsToInsert = [];
         $recordsToUpdate = [];
 
         foreach ($data as $record) {
@@ -127,14 +124,9 @@ class TaskController extends Controller
             }
         }
 
-        // Insert new records not required now
-        // Task::insert($recordsToInsert);
-
         // Update existing records
         foreach ($recordsToUpdate as $record) {
             Task::where('id', $record['id'])->update($record);
         }
-        // currently not use Batch upsert but in future
-        //  Task::query()->upsert($data, ['id'], ['position', 'phase_id']);
     }
 }

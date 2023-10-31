@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Label;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
@@ -25,7 +26,9 @@ class TaskSeeder extends Seeder
             ->state(new Sequence(
                 fn (Sequence $sequence) => [
                     'user_id' => User::whereName('Luke Skywalker')->first()->id,
-                    'phase_id' => Phase::all()->random()
+                    'phase_id' => Phase::all()->random(),
+                    'label_id' =>  Label::all()->random(),
+                    'due_date' => date('Y-m-d H:i:s', time() + (random_int(3, 5) * 24 * 60 * 60))
                 ],
             ))
             ->create();
@@ -40,7 +43,8 @@ class TaskSeeder extends Seeder
             ->state(new Sequence(
                 fn (Sequence $sequence) => [
                     'user_id' => User::whereName('Princess Leia Organa')->first()->id,
-                    'phase_id' => Phase::all()->random()
+                    'phase_id' => Phase::all()->random(),
+                    'label_id' =>  Label::all()->random()
                 ],
             ))
             ->create();
@@ -55,7 +59,8 @@ class TaskSeeder extends Seeder
             ->state(new Sequence(
                 fn (Sequence $sequence) => [
                     'user_id' => User::whereName('Han Solo')->first()->id,
-                    'phase_id' => Phase::all()->random()
+                    'phase_id' => Phase::all()->random(),
+                    'label_id' =>  Label::all()->random()
                 ],
             ))
             ->create();
@@ -70,7 +75,8 @@ class TaskSeeder extends Seeder
             ->state(new Sequence(
                 fn (Sequence $sequence) => [
                     'user_id' => User::whereName('Darth Vader')->first()->id,
-                    'phase_id' => Phase::all()->random()
+                    'phase_id' => Phase::all()->random(),
+                    'label_id' =>  Label::all()->random()
                 ],
             ))
             ->create();
@@ -85,7 +91,8 @@ class TaskSeeder extends Seeder
             ->state(new Sequence(
                 fn (Sequence $sequence) => [
                     'user_id' => User::whereName('Chewbacca')->first()->id,
-                    'phase_id' => Phase::all()->random()
+                    'phase_id' => Phase::all()->random(),
+                    'label_id' =>  Label::all()->random()
                 ],
             ))
             ->create();

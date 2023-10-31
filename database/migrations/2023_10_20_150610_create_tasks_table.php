@@ -17,6 +17,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('phase_id')->constrained('phases')->cascadeOnDelete();
+            $table->foreignId('label_id')->constrained('labels');
+            $table->timestamp('due_date')->nullable()->default('');
             $table->timestamp('completed_at')->nullable()->default('');
             $table->integer('position')->default(0)->nullable(false);
             $table->timestamps();

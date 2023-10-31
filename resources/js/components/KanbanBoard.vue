@@ -215,26 +215,12 @@
                             <div class="flex flex-wrap gap-2">
                                 <div class="flex flex-wrap gap-2">
                                     <div
-                                        v-for="label in kanban.creatingTaskProps
-                                            .labels"
-                                        class="w-max px-2 py-1 text-sm items-center rounded bg-yellow-200 flex gap-1"
+                                        :key="kanban.selectedLabel.id"
+                                        :class="`${kanban.selectedLabel.class} w-max px-2 py-1 text-sm items-center rounded flex gap-1`"
                                     >
-                                        <p>{{ label.name }}</p>
-                                        <span @click="onRemoveLabel(label)">
-                                            <svg
-                                                class="h-3 w-3 hover:h-3.5 hover:w-3.5 text-red-600"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"
-                                                />
-                                            </svg>
-                                        </span>
+                                        <div>
+                                            {{ kanban.selectedLabel.name }}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -269,6 +255,7 @@
                             >
                                 <li
                                     v-for="label in kanban.labels"
+                                    :key="label.id"
                                     class="text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9 hover:bg-blue-600 hover:text-white"
                                     id="listbox-option-0"
                                     role="option"
@@ -277,6 +264,15 @@
                                     {{ label.name }}
                                 </li>
                             </ul>
+                        </div>
+                        <div class="mt-5 sm:mt-6">
+                            <button
+                                type="button"
+                                class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                                @click="addCard()"
+                            >
+                                Add the card!
+                            </button>
                         </div>
                     </div>
                 </generic-modal>
@@ -364,7 +360,7 @@
                         v-for="col in kanban.phases"
                         :key="col.id"
                         :phase_id="col.id"
-                        :phase_name="col.name"
+                        :is_priority="col.is_priority"
                         @open-delete-modal="openDeleteBoard"
                         :tasks_count="col.tasks_count"
                         @reorder-change="onReorderChange"
@@ -407,22 +403,37 @@
                                 "
                                 v-model="kanban.selectedTask.name"
                             />
-
                             <div
-                                class="my-3 w-[10px] h-3 text-white bg-red-600 w-fit px-3 py-1 border rounded-md border-solid"
+                                :class="`${
+                                    kanban.labels[kanban.selectedTask.label_id].class
+                                } my-2 ${
+                                    kanban.labelActive ? 'h-10 px-3' : 'h-5 px-7'
+                                } text-white bg-red-600 w-fit py-2 border rounded-md border-solid`"
+                                @click="
+                                    kanban.labelActive = !kanban.labelActive
+                                "
                             >
+                                <p class="text-sm">{{
+                                    kanban.labelActive
+                                        ? kanban.labels[kanban.selectedTask.label_id].name
+                                        : ""
+                                }}</p>
                             </div>
 
                             <label
                                 for="name"
-                                class="mt-2 block text-sm font-semibold leading-6 text-gray-900"
+                                class="mt-2 block text-lg font-semibold leading-6 text-gray-900"
                                 >Description</label
                             >
                             <div
                                 class="text-sm cursor-pointer leading-6 w-50 h-50"
                                 v-if="!kanban.editDescription"
                                 @click="editDescription(kanban)"
-                                v-html="(kanban.selectedTask.description) ? kanban.selectedTask.description : 'Write Description here...' "
+                                v-html="
+                                    kanban.selectedTask.description
+                                        ? kanban.selectedTask.description
+                                        : 'Write Description here...'
+                                "
                             ></div>
                             <ckeditor
                                 :editor="editor"
@@ -448,24 +459,61 @@
                             </button>
                         </div>
                         <div class="w-1/4 max-h-[34rem] overflow-y-auto">
-                            <div>
-                                <select
-                                    v-model="kanban.selectedTask.phase_id"
-                                    class="mt-2 block w-24 p-1 pl-3 border-0 text-white bg-blue-600 sm:text-sm sm:leading-6 svgChange"
-                                    @change="
-                                        saveChanges(kanban.selectedTask.id)
-                                    "
-                                >
-                                    <option
-                                        class="bg-white text-gray-900"
-                                        v-for="phase in kanban.phases"
-                                        :key="phase.id"
-                                        :value="phase.id"
-                                        :disabled="phase.name !== 'Done'"
+                            <div class="flex gap-3">
+                                <div>
+                                    <label
+                                        for="taskPhase"
+                                        class="block text-sm font-medium leading-6 text-gray-900"
+                                        >Phase</label
                                     >
-                                        {{ phase.name }}
-                                    </option>
-                                </select>
+                                    <select
+                                        v-model="kanban.selectedTask.phase_id"
+                                        id="taskPhase"
+                                        class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                        @change="
+                                            saveChanges(kanban.selectedTask.id)
+                                        "
+                                    >
+                                        <option
+                                            v-for="phase in kanban.phases"
+                                            :key="phase.id"
+                                            :value="phase.id"
+                                            :disabled="
+                                                phase.is_priority == 'yes'
+                                            "
+                                        >
+                                            {{ phase.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        for="taskLabel"
+                                        class="block text-sm font-medium leading-6 text-gray-900"
+                                        >Label</label
+                                    >
+                                    <select
+                                        v-model="kanban.selectedTask.label_id"
+                                        id="taskPhase"
+                                        class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
+                                        @change="
+                                            updateLabel(
+                                                kanban.selectedTask.id
+                                            )
+                                        "
+                                    >
+                                        <option
+                                            v-for="phase in kanban.labels"
+                                            :key="phase.id"
+                                            :value="phase.id"
+                                            :disabled="
+                                                phase.is_priority == 'yes'
+                                            "
+                                        >
+                                            {{ phase.name }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="mt-2 border border-solid h-[31rem]">
                                 <div class="flex items-center border h-10 pl-2">
@@ -599,6 +647,16 @@
                                         </div>
                                     </Listbox>
                                 </div>
+                                <div class="p-2">
+                                    <h2
+                                        class="block text-md font-medium leading-6 text-gray-900"
+                                    >
+                                        Due Date
+                                    </h2>
+                                    <p class="text-sm">
+                                        {{ kanban.selectedTask.due_date }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -618,7 +676,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useKanbanStore } from "../stores/kanban";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import {
@@ -633,7 +691,7 @@ import {
     CheckIcon,
     ChevronUpDownIcon,
     TrashIcon,
-    XMarkIcon
+    XMarkIcon,
 } from "@heroicons/vue/20/solid";
 import { sha256 } from "js-sha256";
 
@@ -641,25 +699,13 @@ const kanban = useKanbanStore();
 const selected = ref(null);
 const errors = ref(null);
 
-const editor = ClassicEditor
+const editor = ClassicEditor;
 const onAddLabel = () => {
     kanban.selectLabel = !kanban.selectLabel;
 };
 const onLabelSelect = (label) => {
-    const oldLabels = kanban.creatingTaskProps.labels;
-
-    if (!oldLabels?.find((oldLabel) => oldLabel.id === label.id)) {
-        kanban.creatingTaskProps.labels = [...oldLabels, label];
-    }
+    kanban.selectedLabel = label;
     kanban.selectLabel = false;
-};
-
-const onRemoveLabel = (label) => {
-    const oldLabels = kanban.creatingTaskProps.labels;
-
-    kanban.creatingTaskProps.labels = oldLabels.filter(
-        (oldLabel) => oldLabel.id !== label.id
-    );
 };
 
 const getAvatar = function (user) {
@@ -731,6 +777,14 @@ const refreshTasks = async () => {
             acc[cur.id] = cur;
             return acc;
         }, {});
+
+        //save labels array in variable
+        kanban.labels = originalTasks.reduce((acc, curr) => {
+            curr.tasks.forEach((cur) => {
+                acc[cur.labels.id] = cur.labels;
+            });
+            return acc;
+        }, {});
     } catch (error) {
         console.error("There was an error fetching the tasks!", error);
     }
@@ -750,20 +804,6 @@ const refreshUsers = async () => {
     }
 };
 
-const refreshLabel = async () => {
-    try {
-        // const response = await axios.get("/api/labels");
-        const originalLabels = [
-            { id: 1, name: "External" },
-            { id: 2, name: "Design" },
-            { id: 3, name: "Priority" },
-        ];
-        kanban.labels = originalLabels;
-    } catch (error) {
-        console.error("There was an error fetching the labels!", error);
-    }
-};
-
 const getSelf = async () => {
     try {
         const response = await axios.get("/api/user");
@@ -779,25 +819,18 @@ const getSelf = async () => {
     }
 };
 
-const addEditCard = async () => {
-    const response = ref({});
+//Save Card data
+const addCard = async () => {
+    kanban.creatingTaskProps.label_id = kanban.selectedLabel.id;
     try {
-        if (kanban.editTask) {
-            response.value = await axios.put(
-                `/api/tasks/${kanban.creatingTaskProps.id}`,
-                kanban.creatingTaskProps
-            );
-        } else {
-            response.value = await axios.post(
-                "/api/tasks",
-                kanban.creatingTaskProps
-            );
-        }
+        await axios.post("/api/tasks", kanban.creatingTaskProps);
         kanban.creatingTask = false;
         kanban.creatingTaskProps = {
             name: null,
             phase_id: null,
             user_id: null,
+            due_date: new Date(),
+            labels: 0,
         };
         await refreshTasks();
     } catch (error) {
@@ -809,7 +842,7 @@ const addEditCard = async () => {
 
 const deleteCard = async (id) => {
     try {
-        const response = await axios.delete("/api/tasks/" + id);
+        await axios.delete("/api/tasks/" + id);
         await refreshTasks();
         kanban.unselectTask();
     } catch (error) {
@@ -831,13 +864,22 @@ const cancelDescription = function (kanban) {
 
 const saveChanges = async (id) => {
     try {
-        const response = await axios.put(
-            "/api/tasks/" + id,
-            kanban.selectedTask
-        );
+        await axios.put("/api/tasks/" + id, kanban.selectedTask);
         kanban.editTask = false;
         kanban.editDescription = false;
         await refreshTasks();
+    } catch (error) {
+        if (error.response.status === 422) {
+            errors.value = error.response.data.errors;
+        }
+    }
+};
+const updateLabel = async (id, value) => {
+    try {
+        await axios.put("/api/tasks/" + id, {
+            label_id: kanban.selectedTask.label_id,
+        });
+        refreshTasks()
     } catch (error) {
         if (error.response.status === 422) {
             errors.value = error.response.data.errors;
@@ -849,7 +891,6 @@ onMounted(async () => {
     await refreshTasks();
     await refreshUsers();
     await getSelf();
-    await refreshLabel();
 
     await nextTick();
 
@@ -866,27 +907,20 @@ const openDeleteBoard = async (id) => {
 };
 
 const deleteBoard = async () => {
-    const response = await axios.delete("/api/boards/" + kanban.deleteTaskId);
+    await axios.delete("/api/boards/" + kanban.deleteTaskId);
     kanban.deletingTask = false;
     refreshTasks();
 };
-onUnmounted(() => {
-    if (ele) {
-        // Clean up the event listener when the component is unmounted.
-        // ele.removeEventListener('mousedown', mouseDownHandler);
-    }
-});
 const columnsWithOrder = ref([]);
 const onReorderChange = (column) => {
     columnsWithOrder.value?.push(column);
 };
 const onReorderCommit = async () => {
-    // const onReorderCommit = () => {
     if (!columnsWithOrder?.value?.length) {
         return;
     }
     try {
-        const response = await axios.post("/api/tasks/reorder", {
+        await axios.post("/api/tasks/reorder", {
             phases: columnsWithOrder.value,
         });
         await refreshTasks();

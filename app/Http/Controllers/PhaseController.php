@@ -53,7 +53,7 @@ class PhaseController extends Controller
      */
     public function update(UpdatePhaseRequest $request, Phase $phase)
     {
-        //
+        $phase->update($request->all());
     }
 
     /**

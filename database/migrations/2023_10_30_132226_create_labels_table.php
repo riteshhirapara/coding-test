@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('phases', function (Blueprint $table) {
+        Schema::create('labels', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('is_priority', ['yes', 'no'])->default('no');
+            $table->string('class');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('phases');
+        Schema::dropIfExists('labels');
     }
 };
